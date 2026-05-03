@@ -1,0 +1,1 @@
+python scripts/compare_runs.py --runs-dir runs --last-n 5 --warmup-epochs 2 --acc-tol 0.5

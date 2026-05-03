@@ -1,0 +1,28 @@
+seed: 42
+output_dir: runs/bs128_ampon_numwks2
+
+dataset:
+  name: CIFAR10        # CIFAR10 or CIFAR100
+  data_dir: ./data
+  num_workers: 2
+  pin_memory: true
+
+model:
+  name: resnet18
+  pretrained: false
+
+training:
+  epochs: 20
+  batch_size: 128
+  learning_rate: 0.1
+  momentum: 0.9
+  weight_decay: 0.0005
+  use_amp: true
+
+scheduler:
+  name: cosine         # cosine or none
+  min_lr: 0.0
+
+logging:
+  log_interval: 100
+  save_checkpoint: true
