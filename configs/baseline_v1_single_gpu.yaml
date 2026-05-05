@@ -1,0 +1,29 @@
+seed: 42
+output_dir: runs/baseline_v1_single_gpu_cifar10_resnet18_bs128_amp_workers2
+
+dataset:
+  name: CIFAR10
+  data_dir: ./data
+  num_workers: 2
+  pin_memory: true
+
+model:
+  name: resnet18
+  pretrained: false
+
+training:
+  epochs: 20
+  batch_size: 128
+  learning_rate: 0.1
+  momentum: 0.9
+  weight_decay: 0.0005
+  use_amp: true
+
+scheduler:
+  name: cosine
+  min_lr: 0.0
+
+logging:
+  log_interval: 100
+  save_checkpoint: true
+  precise_timing: true
