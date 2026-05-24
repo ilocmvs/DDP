@@ -33,6 +33,10 @@ METRIC_FIELDS = [
     "val_img_s",
     "data_time",
     "batch_time",
+    "gpu_time",
+    "cpu_overhead_time",
+    "data_ratio",
+    "gpu_ratio",
     "gpu_mem_mb",
     "best_acc",
     "is_best",
@@ -124,11 +128,13 @@ def main():
     best_acc = 0.0
     epochs = int(cfg["training"]["epochs"])
     log_interval = int(cfg["logging"].get("log_interval", 100))
+    precise_timing = bool(cfg["logging"].get("precise_timing", False))
 
     print(f"Device: {device}")
     print(f"Dataset: {cfg['dataset']['name']} | classes={num_classes}")
     print(f"Model: {cfg['model']['name']}")
     print(f"AMP: {use_amp}")
+    print(f"Precise timing: {precise_timing}")
 
     for epoch in range(1, epochs + 1):
         if torch.cuda.is_available():
@@ -143,6 +149,7 @@ def main():
             epoch=epoch,
             log_interval=log_interval,
             scaler=scaler,
+            precise_timing=precise_timing,
         )
 
         val_metrics = evaluate(
@@ -187,17 +194,29 @@ def main():
         else:
             gpu_mem_mb = 0.0
 
+        data_time = train_metrics["data_time_avg"]
+        batch_time = train_metrics["batch_time_avg"]
+        gpu_time = train_metrics["gpu_time_avg"]
+
+        data_ratio = data_time / batch_time if batch_time > 0 else 0.0
+        gpu_ratio = gpu_time / batch_time if batch_time > 0 else 0.0
+        cpu_overhead_time = max(batch_time - data_time - gpu_time, 0.0)
+
         metrics_row = {
             "epoch": epoch,
             "lr": lr,
             "train_loss": train_metrics["loss"],
-            "train_acc": train_metrics['acc'],
+            "train_acc": train_metrics["acc"],
             "val_loss": val_metrics["loss"],
             "val_acc": val_metrics["acc"],
             "train_img_s": train_metrics["throughput_img_s"],
             "val_img_s": val_metrics["throughput_img_s"],
-            "data_time": train_metrics["data_time_avg"],
-            "batch_time": train_metrics["batch_time_avg"],
+            "data_time": data_time,
+            "batch_time": batch_time,
+            "gpu_time": gpu_time,
+            "cpu_overhead_time": cpu_overhead_time,
+            "data_ratio": data_ratio,
+            "gpu_ratio": gpu_ratio,
             "gpu_mem_mb": gpu_mem_mb,
             "best_acc": best_acc,
             "is_best": int(is_best),
