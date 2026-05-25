@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import csv
+import json
 from pathlib import Path
 
 import torch
 import torch.nn as nn
-from torch.cuda.amp import GradScaler
+from torch.amp import GradScaler
 
 from src.data import DataConfig, build_dataloaders
 from src.engine import evaluate, train_one_epoch
@@ -18,9 +20,7 @@ def parse_args():
     parser.add_argument("--config", type=str, required=True, help="Path to YAML config")
     return parser.parse_args()
 
-import csv
-import json
-from pathlib import Path
+
 
 METRIC_FIELDS = [
     "epoch",
@@ -123,7 +123,7 @@ def main():
         raise ValueError(f"Unsupported scheduler: {scheduler_name}")
 
     use_amp = bool(cfg["training"].get("use_amp", False))
-    scaler = GradScaler() if use_amp else None
+    scaler = GradScaler("cuda") if use_amp else None
 
     best_acc = 0.0
     epochs = int(cfg["training"]["epochs"])
